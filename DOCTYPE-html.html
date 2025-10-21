@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aeropuerto GDL - Guía de Viajero</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load Lucide icons (used for services and navigation) -->
+    <script type="module">
+        import { createIcons, icons } from 'https://cdn.jsdelivr.net/npm/lucide@latest/dist/esm/lucide.js';
+        
+        // Expose the function globally so it can be called later after new HTML content is injected
+        window.refreshIcons = () => {
+            createIcons({ icons });
+        };
+
+        // Call it initially when the document is ready to render the header/footer icons
+        document.addEventListener('DOMContentLoaded', () => {
+            window.refreshIcons();
+        });
+    </script>
+    <style>
+        /* Custom font import for modern look */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        /* Style for the Axolotl Placeholder */
+        .axolotl-mascot {
+            font-size: 8rem;
+            line-height: 1;
+        }
+        /* Mobile-first card grid */
+        .service-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        @media (min-width: 640px) {
+            .service-grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+        }
+        @media (min-width: 1024px) {
+            .service-grid {
+                grid-template-columns: repeat(5, minmax(0, 1fr));
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col transition-colors duration-300" id="app-container">
+
+    <!-- Header (Always Visible) -->
+    <header class="w-full p-4 flex justify-between items-center bg-white shadow-sm sticky top-0 z-10">
+        <h1 class="text-xl font-bold text-gray-800" id="current-title">Aeropuerto GDL</h1>
+        <!-- Small GAP Logo Placeholder -->
+        <div class="text-xs font-semibold text-gray-500 border border-gray-300 px-2 py-1 rounded-full">
+            Grupo Aeroportuario del Pacífico
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="flex-grow p-4 md:p-8 overflow-y-auto">
+        <div id="content-view">
+            <!-- Content will be injected here by JavaScript -->
+        </div>
+    </main>
+
+    <!-- Footer / Persistent Navigation -->
+    <footer class="sticky bottom-0 w-full bg-white border-t border-gray-200 shadow-lg p-2 flex justify-around items-center z-10">
+        <button class="flex flex-col items-center text-xs text-gray-600 hover:text-blue-600 p-1" onclick="changeLanguage()">
+            <i data-lucide="languages" class="w-6 h-6"></i>
+            Idioma
+        </button>
+        <button class="flex flex-col items-center text-xs text-blue-600 hover:text-blue-700 p-1" onclick="navigate('home')">
+            <i data-lucide="home" class="w-7 h-7"></i>
+            Inicio
+        </button>
+        <button class="flex flex-col items-center text-xs text-gray-600 hover:text-blue-600 p-1" onclick="navigate('accessibility')">
+            <i data-lucide="accessibility" class="w-6 h-6"></i>
+            Asistencia
+        </button>
+        <button class="flex flex-col items-center text-xs text-gray-600 hover:text-blue-600 p-1" onclick="toggleAccessibilityMode()">
+            <i data-lucide="eye" class="w-6 h-6"></i>
+            Contraste
+        </button>
+    </footer>
+
+    <script>
+        const contentView = document.getElementById('content-view');
+        const appContainer = document.getElementById('app-container');
+        const currentTitle = document.getElementById('current-title');
+        let currentPage = 'home';
+        let isHighContrast = false;
+
+        // --- Data Definitions ---
+
+        const servicesData = [
+            { id: 'migracion', label: 'Migración', icon: 'passport' },
+            { id: 'comida', label: 'Comida', icon: 'coffee' },
+            { id: 'enfermeria', label: 'Enfermería', icon: 'syringe' },
+            { id: 'banos', label: 'Baños', icon: 'toilet' },
+            { id: 'equipaje', label: 'Equipaje', icon: 'luggage' },
+            { id: 'maternidad', label: 'Sala de Maternidad', icon: 'baby' },
+            { id: 'mascotas', label: 'Descanso de Mascotas', icon: 'paw-print' },
+            { id: 'accesibilidad', label: 'Puntos de Accesibilidad', icon: 'braille' },
+            { id: 'transporte', label: 'Transporte', icon: 'bus' },
+            { id: 'mapa', label: 'Mapa del Aeropuerto', icon: 'map' },
+            { id: 'senaletica', label: 'Aprende la Señalética', icon: 'signpost' },
+            { id: 'tips', label: 'Tips para Viajeros', icon: 'sun' },
+            { id: 'conexion', label: 'Conexión y Vuelos', icon: 'plane' }
+        ];
+
+        // --- View Rendering Functions ---
+
+        function renderHome() {
+            currentTitle.textContent = "Aeropuerto GDL";
+            contentView.innerHTML = `
+                <div class="flex flex-col items-center justify-center h-full text-center">
+                    <div class="p-8">
+                        <!-- Axolotl Mascot Placeholder (Emoji for simplicity and single-file mandate) -->
+                        <div class="axolotl-mascot" role="img" aria-label="Axolotl Mascot">
+                            &#x1F98E;
+                        </div>
+                        <h2 class="text-2xl md:text-3xl font-extrabold text-gray-800 mt-4 mb-2">¡Bienvenido a GDL!</h2>
+                        <p class="text-gray-600 mb-8">Escaneaste el código QR para comenzar tu experiencia.</p>
+
+                        <button onclick="navigate('services')"
+                            class="w-full md:w-auto px-10 py-4 bg-blue-600 text-white font-semibold rounded-xl shadow-lg hover:bg-blue-700 transition duration-150 transform hover:scale-[1.02]">
+                            ¿En qué te puedo ayudar?
+                        </button>
+
+                        <!-- Optional Language Selector -->
+                        <div class="mt-8">
+                            <label for="language" class="text-sm text-gray-500 block mb-2">Selección de Idioma</label>
+                            <select id="language" class="p-2 border border-gray-300 rounded-lg text-gray-700 w-full md:w-64">
+                                <option value="es">Español</option>
+                                <option value="en">English</option>
+                                <option value="fr">Français</option>
+                                <option value="jp">日本語</option>
+                                <option value="ot">Otros...</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            `;
+            // Re-render icons after content injection
+            window.refreshIcons();
+        }
+
+        function renderServices() {
+            currentTitle.textContent = "Servicios Generales";
+            const serviceIcons = servicesData.map(service => `
+                <button onclick="navigate('${service.id}')"
+                    class="flex flex-col items-center justify-center p-4 bg-white rounded-xl shadow-md hover:shadow-lg hover:bg-blue-50 transition duration-150 transform hover:scale-[1.03] text-gray-800">
+                    <i data-lucide="${service.icon}" class="w-8 h-8 text-black-500 mb-2"></i>
+                    <span class="text-xs font-medium text-center">${service.label}</span>
+                </button>
+            `).join('');
+
+            contentView.innerHTML = `
+                <div class="max-w-4xl mx-auto">
+                    <!-- Itinerario Button -->
+                    <button class="w-full mb-6 px-4 py-3 bg-blue-600 text-white font-semibold rounded-xl shadow-md hover:bg-blue-700 transition duration-150">
+                        <div class="flex items-center justify-center">
+                            <i data-lucide="calendar-check" class="w-5 h-5 mr-2"></i>
+                            Ver mi itinerario
+                        </div>
+                    </button>
+
+                    <!-- Services Grid -->
+                    <div class="grid service-grid gap-4 mt-6">
+                        ${serviceIcons}
+                    </div>
+                </div>
+            `;
+            window.refreshIcons();
+        }
+
+        function renderMigration() {
+            currentTitle.textContent = "Migración";
+            contentView.innerHTML = `
+                <div class="max-w-xl mx-auto">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-2">Migración</h2>
+                    <p class="text-xl text-blue-600 font-medium mb-8">¡Bienvenidos a GDL!</p>
+
+                    <div class="space-y-4">
+                        <!-- Migration Cards -->
+                        <button onclick="navigate('map')"
+                            class="w-full text-left p-5 bg-white rounded-xl shadow-md border-l-4 border-blue-500 hover:shadow-lg transition duration-150">
+                            <div class="font-semibold text-lg text-gray-800">¿Dónde está Migración?</div>
+                            <p class="text-sm text-gray-500">Ver la ruta más rápida y accesible.</p>
+                        </button>
+                        <div class="w-full text-left p-5 bg-white rounded-xl shadow-md border-l-4 border-blue-500 hover:shadow-lg transition duration-150">
+                            <div class="font-semibold text-lg text-gray-800">¿Cómo llenar la forma migratoria?</div>
+                            <p class="text-sm text-gray-500">Guía paso a paso en su idioma.</p>
+                        </div>
+                        <div class="w-full text-left p-5 bg-white rounded-xl shadow-md border-l-4 border-blue-500 hover:shadow-lg transition duration-150">
+                            <div class="font-semibold text-lg text-gray-800">¿Qué documentos necesito?</div>
+                            <p class="text-sm text-gray-500">Lista de requisitos y visas.</p>
+                        </div>
+                    </div>
+
+                    <!-- AJOLOTIPS Section -->
+                    <div class="mt-8 p-4 bg-gray-100 border-l-4 border-yellow-500 rounded-lg shadow-inner flex items-start">
+                        <div class="text-3xl mr-3" role="img" aria-label="Axolotl icon">
+                            &#x1F98E;
+                        </div>
+                        <div>
+                            <span class="font-extrabold text-yellow-600 block">AJOLOTIPS</span>
+                            <p class="text-sm text-gray-700 mt-1">
+                                Recuerda tener tu pasaporte y forma migratoria a la mano para agilizar el proceso. ¡El tiempo de espera es usualmente de 15 minutos!
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            `;
+            window.refreshIcons();
+        }
+
+        function renderMap() {
+            currentTitle.textContent = "¿Dónde está Migración?";
+            contentView.innerHTML = `
+                <div class="max-w-2xl mx-auto">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-4">Ubicación de Migración</h2>
+                    <p class="text-gray-600 mb-6">Esta es tu ruta más rápida desde el punto QR.</p>
+
+                    <!-- Simple Map Placeholder -->
+                    <div class="w-full h-96 bg-gray-200 rounded-xl shadow-xl flex items-center justify-center relative overflow-hidden">
+                        <div class="absolute inset-0 bg-gradient-to-br from-blue-100 to-white opacity-50"></div>
+                        <div class="z-10 text-center">
+                            <i data-lucide="map-pin" class="w-10 h-10 text-blue-600 mx-auto mb-2"></i>
+                            <p class="font-semibold text-xl text-gray-700">MAPA DEL AEROPUERTO</p>
+                            <p class="text-sm text-gray-500">Ruta: Usted está aquí → Migración</p>
+                            <!-- Simulate Route Line -->
+                            <div class="h-1 w-20 bg-blue-500 my-4 mx-auto animate-pulse"></div>
+                            <i data-lucide="passport" class="w-8 h-8 text-blue-600 mx-auto"></i>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-between items-center mt-6">
+                        <button class="flex items-center px-6 py-3 bg-blue-600 text-white font-semibold rounded-xl shadow-lg hover:bg-blue-700 transition duration-150">
+                            <i data-lucide="scan" class="w-5 h-5 mr-2"></i>
+                            Ver en RA
+                        </button>
+                        <button onclick="navigate('services')" class="text-blue-600 hover:underline">
+                            Volver a Servicios
+                        </button>
+                    </div>
+
+                    <!-- Accessibility and Assistant icons at the bottom -->
+                    <div class="flex justify-center space-x-6 mt-8 p-4 bg-gray-100 rounded-xl">
+                         <div class="flex flex-col items-center text-gray-600">
+                            <i data-lucide="accessibility" class="w-6 h-6"></i>
+                            <span class="text-xs">Accesibilidad</span>
+                        </div>
+                        <div class="flex flex-col items-center text-gray-600">
+                            <div class="axolotl-mascot text-2xl">&#x1F98E;</div>
+                            <span class="text-xs">Asistente</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+            window.refreshIcons();
+        }
+
+        function renderSitemap(title, description, links) {
+             currentTitle.textContent = title;
+             const linkHtml = links.map(link => `
+                <button onclick="navigate('${link.target}')"
+                    class="w-full text-left p-4 bg-white rounded-xl shadow-md border-l-4 border-gray-400 hover:shadow-lg hover:bg-gray-50 transition duration-150">
+                    <div class="font-semibold text-lg text-gray-800">${link.text}</div>
+                    <p class="text-sm text-gray-500">${link.subtext}</p>
+                </button>
+             `).join('');
+
+             contentView.innerHTML = `
+                <div class="max-w-xl mx-auto">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-2">${title}</h2>
+                    <p class="text-gray-600 mb-8">${description}</p>
+                    <div class="space-y-4">
+                        ${linkHtml}
+                    </div>
+                </div>
+             `;
+             window.refreshIcons();
+        }
+
+        // --- Navigation and Utility Functions ---
+
+        function navigate(target) {
+            currentPage = target;
+            let title = '';
+
+            switch (target) {
+                case 'home':
+                    renderHome();
+                    break;
+                case 'services':
+                    renderServices();
+                    break;
+                case 'migracion':
+                    renderMigration();
+                    break;
+                case 'map':
+                    renderMap();
+                    break;
+                case 'accessibility':
+                     renderSitemap(
+                        'Asistencia y Accesibilidad',
+                        'Encuentra las rutas accesibles, pide ayuda o reporta un problema.',
+                        [
+                            { text: 'Rutas Accesibles', subtext: 'Ver mejores caminos en el mapa.', target: 'map' },
+                            { text: 'Solicitar Asistencia', subtext: 'Pedir ayuda inmediata en mi ubicación.', target: 'services' },
+                            { text: 'Reportar Problemas', subtext: 'Notificar sobre un inconveniente en el aeropuerto.', target: 'services' }
+                        ]
+                    );
+                    break;
+                case 'transporte':
+                    renderSitemap(
+                        'Transporte desde el Aeropuerto',
+                        'Opciones para llegar a tu destino final.',
+                        [
+                            { text: 'Taxis y Apps', subtext: 'Ubicación de sitios de taxi autorizados.', target: 'services' },
+                            { text: 'Autobuses (Bus)', subtext: 'Rutas y horarios de camiones.', target: 'services' },
+                            { text: 'Alquiler de Autos', subtext: 'Oficinas de renta de vehículos.', target: 'services' }
+                        ]
+                    );
+                    break;
+                case 'mapa':
+                    renderSitemap(
+                        'Mapa del Aeropuerto',
+                        'Navegación interactiva y GPS dentro de la terminal.',
+                        [
+                            { text: '¿Dónde estoy?', subtext: 'Ver mi ubicación actual en el mapa.', target: 'map' },
+                            { text: '¿A dónde quiero ir?', subtext: 'Trazar ruta a un punto de interés.', target: 'map' }
+                        ]
+                    );
+                    break;
+                case 'senaletica':
+                    renderSitemap(
+                        'Aprende la Señalética',
+                        'Guía interactiva sobre los códigos de color y símbolos.',
+                        [
+                            { text: 'Códigos de Color', subtext: 'Significado de los colores de las señales.', target: 'services' },
+                            { text: 'Iconos Comunes', subtext: 'Explicación de símbolos de servicios.', target: 'services' }
+                        ]
+                    );
+                    break;
+                case 'tips':
+                    renderSitemap(
+                        'Tips para Viajeros',
+                        'Consejos de seguridad, cultura local y números de emergencia.',
+                        [
+                            { text: 'Cultura Local', subtext: 'Moneda, costumbres y lugares de interés.', target: 'services' },
+                            { text: 'Seguridad y Emergencias', subtext: 'Números importantes y consejos de viaje.', target: 'services' }
+                        ]
+                    );
+                    break;
+                default:
+                    renderHome();
+            }
+            // Scroll to top of content
+            contentView.scrollTop = 0;
+        }
+
+        function changeLanguage() {
+            // Placeholder function for changing the language setting
+            alertPlaceholder("Cambiando el idioma a English. (Función de prototipo)");
+        }
+
+        function toggleAccessibilityMode() {
+            isHighContrast = !isHighContrast;
+            if (isHighContrast) {
+                appContainer.classList.remove('bg-gray-50');
+                appContainer.classList.add('bg-black', 'text-yellow-400', 'high-contrast-mode');
+                // Adjust colors for better contrast in the footer/header
+                document.querySelector('header').classList.remove('bg-white', 'shadow-sm');
+                document.querySelector('header').classList.add('bg-gray-900', 'border-yellow-400');
+                document.querySelector('footer').classList.remove('bg-white', 'border-t-gray-200', 'shadow-lg');
+                document.querySelector('footer').classList.add('bg-gray-900', 'border-t', 'border-yellow-400', 'shadow-xl');
+
+                // General text and buttons
+                document.querySelectorAll('.text-gray-800').forEach(el => el.classList.replace('text-gray-800', 'text-yellow-400'));
+                document.querySelectorAll('.text-gray-600').forEach(el => el.classList.replace('text-gray-600', 'text-yellow-200'));
+                document.querySelectorAll('.text-gray-500').forEach(el => el.classList.replace('text-gray-500', 'text-yellow-300'));
+            } else {
+                appContainer.classList.remove('bg-black', 'text-yellow-400', 'high-contrast-mode');
+                appContainer.classList.add('bg-gray-50');
+                 // Adjust colors back
+                document.querySelector('header').classList.add('bg-white', 'shadow-sm');
+                document.querySelector('header').classList.remove('bg-gray-900', 'border-yellow-400');
+                document.querySelector('footer').classList.add('bg-white', 'border-t-gray-200', 'shadow-lg');
+                document.querySelector('footer').classList.remove('bg-gray-900', 'border-t', 'border-yellow-400', 'shadow-xl');
+
+                // General text and buttons
+                document.querySelectorAll('.text-yellow-400').forEach(el => el.classList.replace('text-yellow-400', 'text-gray-800'));
+                document.querySelectorAll('.text-yellow-200').forEach(el => el.classList.replace('text-yellow-200', 'text-gray-600'));
+                document.querySelectorAll('.text-yellow-300').forEach(el => el.classList.replace('text-yellow-300', 'text-gray-500'));
+            }
+
+             // Note: More complex high-contrast adjustments would require a dedicated CSS class toggled on the body and more specific selectors, but this demonstrates the basic functionality.
+        }
+
+        function alertPlaceholder(message) {
+            // Since alert() is forbidden, use a simple console log/temporary message for prototype
+            console.log("ALERT SIMULATED:", message);
+            const tempMessage = document.createElement('div');
+            tempMessage.textContent = message;
+            tempMessage.className = 'fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-yellow-400 text-gray-800 px-6 py-3 rounded-xl shadow-2xl z-50 transition-opacity duration-300';
+            document.body.appendChild(tempMessage);
+            setTimeout(() => {
+                tempMessage.style.opacity = '0';
+                setTimeout(() => tempMessage.remove(), 300);
+            }, 2000);
+        }
+
+        // --- Initialization ---
+        document.addEventListener('DOMContentLoaded', () => {
+            navigate('home');
+        });
+
+    </script>
+</body>
+</html>
